@@ -1,0 +1,105 @@
+package main 
+
+import (
+	"fmt"
+	"bufio"
+	"os"
+	"strings"
+)
+
+//type tab map[*bitreeNode]*bitreeNode //map[figlio]padre
+
+type bitreeNode struct {
+	left *bitreeNode
+	right *bitreeNode
+	item string
+}
+
+type bitree struct{
+	root *bitreeNode
+}
+
+func main() {
+	file,_ := os.Open("in.txt")
+	scanner := bufio.NewScanner(file) 
+
+var tabella map[*bitreeNode]*bitreeNode = make(map[*bitreeNode]*bitreeNode)
+
+
+	for scanner.Scan() {
+		riga := scanner.Text()
+		dad_son := strings.Split(riga,")")
+		dad := newNode(dad_son[0])
+		son := newNode(dad_son[1])
+
+		tabella[son] = dad //ho creato la mappa coi puntatori
+	} 
+
+var Albero bitree
+Albero.root = newNode("COM")
+
+	for son,dad := range tabella {
+		for son1,dad1 := range tabella{
+			if hasSameItem(dad,dad1) {
+				if hasSameItem(son,son1) {
+					dad.left = son
+				} else {
+					dad.right = son1
+				}
+			}
+		}
+	}
+
+	mapToTree(tabella,Albero.root)
+	stampaAlberoASommario(Albero.root,0)
+}
+
+func hasSameItem(dad *bitreeNode, dad1 *bitreeNode) bool {
+	if dad.item == dad1.item {
+		return true 
+	} else {
+		return false
+	}
+}
+
+func mapToTree(mappa map[*bitreeNode]*bitreeNode, node *bitreeNode) {
+	for son, dad := range mappa {
+		if node.right == nil || node.left == nil  {
+			if node.right == nil && hasSameItem(dad,node) {
+				node.right = son 
+				mapToTree(mappa,node.right)
+			}
+			if node.left == nil && hasSameItem(dad,node) {
+				node.left = son 
+				mapToTree(mappa,node.left)
+			}
+		}
+	}
+}
+
+func stampaAlberoASommario(node *bitreeNode, spaces int) {
+	for i := 0; i < spaces; i++ {
+		fmt.Print(" ")
+	}
+
+	fmt.Print("*")
+	fmt.Println(node.item)
+
+	if node.left != nil || node.right != nil {
+		if node.left != nil {
+			stampaAlberoASommario(node.left, spaces+1)
+		}
+		if node.right != nil {
+			stampaAlberoASommario(node.right, spaces+1)
+		}
+	}
+}
+
+func newNode(val string) *bitreeNode {
+	node := new(bitreeNode)
+	node.left = nil 
+	node.right = nil 
+	node.item = val
+
+	return node
+}
